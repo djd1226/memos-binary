@@ -38,40 +38,27 @@ jobs:
         mv -f dist ../server/router/frontend/dist
         cd ../..
 
-    - name: Build binary for ARM v7
+    - name: Build binary
       run: |
         cd memos
-        GOOS=linux GOARCH=arm GOARM=7 CGO_ENABLED=0 go build -o memos ./bin/memos/main.go
-        rm -f artifact/memos
-        cp memos artifact/memos
-        cd artifact
-        tar -czvf ../memos-linux-armv7.tar.gz *
+        GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o memos ./bin/memos/main.go && rm -f artifact/memos && cp memos artifact/memos && cd artifact && tar -czvf ../memos-linux-amd64.tar.gz * && cd ..
+        GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -o memos ./bin/memos/main.go && rm -f artifact/memos && cp memos artifact/memos && cd artifact && tar -czvf ../memos-windows-amd64.tar.gz * && cd ..
+        GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -o memos ./bin/memos/main.go && rm -f artifact/memos && cp memos artifact/memos && cd artifact && tar -czvf ../memos-darwin-amd64.tar.gz * && cd ..
+        GOOS=freebsd GOARCH=amd64 CGO_ENABLED=0 go build -o memos ./bin/memos/main.go && rm -f artifact/memos && cp memos artifact/memos && cd artifact && tar -czvf ../memos-freebsd-amd64.tar.gz * && cd ..
+        GOOS=linux GOARCH=arm CGO_ENABLED=0 GOARM=7 go build -o memos ./bin/memos/main.go && rm -f artifact/memos && cp memos artifact/memos && cd artifact && tar -czvf ../memos-linux-armv7.tar.gz * && cd ..
         cd ..
-
-    - name: Build binary for AMD64
-      run: |
-        cd memos
-        GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o memos ./bin/memos/main.go
-        rm -f artifact/memos
-        cp memos artifact/memos
-        cd artifact
-        tar -czvf ../memos-linux-amd64.tar.gz *
-        tar -czvf ../memos-windows-amd64.tar.gz *
-        tar -czvf ../memos-darwin-amd64.tar.gz *
-        tar -czvf ../memos-freebsd-amd64.tar.gz *
-        cd ..
-
+        
     - name: Upload artifact
       uses: actions/upload-artifact@main
       with:
         name: memos-pre-built
         path: |
-          memos/memos-linux-amd64.tar.gz
-          memos/memos-windows-amd64.tar.gz
-          memos/memos-darwin-amd64.tar.gz
-          memos/memos-freebsd-amd64.tar.gz
-          memos/memos-linux-armv7.tar.gz   # Added line for ARM v7
-
+            memos/memos-linux-amd64.tar.gz
+            memos/memos-windows-amd64.tar.gz
+            memos/memos-darwin-amd64.tar.gz
+            memos/memos-freebsd-amd64.tar.gz
+            memos/memos-linux-armv7.tar.gz
+            
     - name: Generate release tag
       id: tag
       run: echo "release_tag=$(wget -qO- https://api.github.com/repos/usememos/memos/tags | gawk -F '["v]' '/name/{print "v"$5;exit}')" >> $GITHUB_OUTPUT
@@ -87,8 +74,8 @@ jobs:
             memos/memos-windows-amd64.tar.gz
             memos/memos-darwin-amd64.tar.gz
             memos/memos-freebsd-amd64.tar.gz
-            memos/memos-linux-armv7.tar.gz   # Added line for ARM v7
-            
+            memos/memos-linux-armv7.tar.gz
+              
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@v2
       with:
