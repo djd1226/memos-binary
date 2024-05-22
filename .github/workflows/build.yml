@@ -22,8 +22,9 @@ jobs:
 
     - name: Clone Repo
       run: |
-        export LATEST_APP=$(wget -qO- https://api.github.com/repos/usememos/memos/tags | gawk -F '["v]' '/name/{print "v"$5;exit}')
-        git clone -b $LATEST_APP https://github.com/usememos/memos
+        VERSION_TAG="v0.20.0"
+        echo "Cloning the repository with the specified tag: $VERSION_TAG"
+        git clone -b $VERSION_TAG https://github.com/usememos/memos
         npm install -g pnpm
 
     - name: Build Frontend
@@ -41,11 +42,46 @@ jobs:
     - name: Build binary
       run: |
         cd memos
-        GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o memos ./bin/memos/main.go && rm -f artifact/memos && cp memos artifact/memos && cd artifact && tar -czvf ../memos-linux-amd64.tar.gz * && cd ..
-        GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -o memos ./bin/memos/main.go && rm -f artifact/memos && cp memos artifact/memos && cd artifact && tar -czvf ../memos-windows-amd64.tar.gz * && cd ..
-        GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -o memos ./bin/memos/main.go && rm -f artifact/memos && cp memos artifact/memos && cd artifact && tar -czvf ../memos-darwin-amd64.tar.gz * && cd ..
-        GOOS=freebsd GOARCH=amd64 CGO_ENABLED=0 go build -o memos ./bin/memos/main.go && rm -f artifact/memos && cp memos artifact/memos && cd artifact && tar -czvf ../memos-freebsd-amd64.tar.gz * && cd ..
-        GOOS=linux GOARCH=arm CGO_ENABLED=0 GOARM=7 go build -o memos-armv7 ./bin/memos/main.go && rm -f artifact/memos-armv7 && cp memos-armv7 artifact/memos-armv7 && cd artifact && tar -czvf ../memos-linux-armv7.tar.gz * && cd ..
+        # Build for Linux AMD64
+        GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o memos ./bin/memos/main.go
+        rm -f artifact/memos
+        cp memos artifact/memos
+        cd artifact
+        tar -czvf ../memos-linux-amd64.tar.gz *
+        cd ..
+        
+        # Build for Windows AMD64
+        GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -o memos ./bin/memos/main.go
+        rm -f artifact/memos
+        cp memos artifact/memos
+        cd artifact
+        tar -czvf ../memos-windows-amd64.tar.gz *
+        cd ..
+        
+        # Build for Darwin AMD64
+        GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -o memos ./bin/memos/main.go
+        rm -f artifact/memos
+        cp memos artifact/memos
+        cd artifact
+        tar -czvf ../memos-darwin-amd64.tar.gz *
+        cd ..
+        
+        # Build for FreeBSD AMD64
+        GOOS=freebsd GOARCH=amd64 CGO_ENABLED=0 go build -o memos ./bin/memos/main.go
+        rm -f artifact/memos
+        cp memos artifact/memos
+        cd artifact
+        tar -czvf ../memos-freebsd-amd64.tar.gz *
+        cd ..
+        
+        # Build for Linux ARM v7
+        GOOS=linux GOARCH=arm CGO_ENABLED=0 GOARM=7 go build -o memos-armv7 ./bin/memos/main.go
+        rm -f artifact/memos-armv7
+        cp memos-armv7 artifact/memos-armv7
+        cd artifact
+        tar -czvf ../memos-linux-armv7.tar.gz *
+        cd ..
+        
         cd ..
         
     - name: Upload artifact
@@ -61,7 +97,9 @@ jobs:
             
     - name: Generate release tag
       id: tag
-      run: echo "release_tag=$(wget -qO- https://api.github.com/repos/usememos/memos/tags | gawk -F '["v]' '/name/{print "v"$5;exit}')" >> $GITHUB_OUTPUT
+      run: |
+        release_tag="v0.20.0"
+        echo "release_tag=${release_tag}" >> $GITHUB_OUTPUT
 
     - name: Create release
       uses: softprops/action-gh-release@v1
